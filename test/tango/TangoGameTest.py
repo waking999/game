@@ -214,3 +214,23 @@ class MainTests(unittest.TestCase):
         self.assertEqual(col0, game.get_column(solution,0))
         self.assertEqual(col1, game.get_column(solution, 1))
         self.assertEqual(col2, game.get_column(solution, 2))
+
+    def test_no_breach(self):
+        board=[[3, 1, 3, 1, 1, 3], [3, 3, 1, 1, 3, 1], [1, 3, 1, 3, 1, 3], [3, 1, 3, 3, 1, 1], [1, 1, 3, 1, 3, 3], [1, 3, 1, 3, 3, 1]]
+        game = TangoGame()
+        self.assertEqual(True, game.no_breach(board))
+
+    def test_breach_rule2_0_1(self):
+        # no piece
+        game = TangoGame()
+        solution = [[3, 1, 3, 1, 1, 3], [3, 3, 1, 1, 3, 1], [1, 3, 1, 3, 1, 3], [3, 1, 3, 3, 1, 1], [1, 1, 3, 1, 3, 3], [1, 3, 1, 3, 3, 1]]
+        flag = game.breach_rule2(solution)
+        self.assertEqual(False, flag)
+
+
+    def test_breach_rule3_0_1(self):
+        # no piece
+        game = TangoGame()
+        solution = [[3, 1, 3, 1, 1, 3], [3, 3, 1, 1, 3, 1], [1, 3, 1, 3, 1, 3], [3, 1, 3, 3, 1, 1], [1, 1, 3, 1, 3, 3], [1, 3, 1, 3, 3, 1]]
+        flag = game.breach_rule3(solution)
+        self.assertEqual(False, flag)
