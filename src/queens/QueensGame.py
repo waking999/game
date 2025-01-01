@@ -17,8 +17,8 @@ BKG_COLOR = pygame.Color('grey')  # background color
 LINE_COLOR = pygame.Color('black')  # line color
 LINE_WIDTH = 1  # line width
 
-BACKGROUND_COLORS = ['aqua',   'beige',   'blue', 'blueviolet', 'brown', 'cadetblue', 'chartreuse',
-                     'chocolate', 'coral', 'crimson', 'firebrick', 'forestgreen','gold','hotpink']
+BACKGROUND_COLORS = ['aqua', 'blue', 'blueviolet', 'brown', 'cadetblue', 'chartreuse',
+                     'chocolate', 'coral', 'crimson', 'firebrick', 'forestgreen', 'gold', 'hotpink', 'indianred']
 
 
 class QueensGame:
@@ -26,19 +26,17 @@ class QueensGame:
         self.rows = self.cols = _rows
         self.pieces = self.rows * self.cols
 
-        self.cWidth = self.cHeight = 50  # cell width and height
-        self.scale = 0.9  # shrink the character images to avoid it fully occupying each cell
+        self.cWidth = self.cHeight = 60  # cell width and height
+        self.scale = 0.7  # shrink the character images to avoid it fully occupying each cell
 
         self.size = self.cWidth * self.rows, self.cHeight * self.rows  # game board size
 
         self.screen = pygame.display.set_mode(self.size)
 
-
         self.img_queen = pygame.image.load("../../image/queen.jpg").convert()
         self.img_cross = pygame.image.load("../../image/cross.png").convert()
 
-        self.queens_positions_player = [BLANK for i in range(self.rows)]
-
+        self.queens_positions_player = [BLANK for _ in range(self.rows)]
 
     def produce_a_queens_positions_solution(self):
         """
@@ -65,13 +63,13 @@ class QueensGame:
 
         return positions_2d
 
-    def is_diagonally_touched(self, queens_positions_solutions):
+    def is_diagonally_touched(self, queens_positions):
         """
         To check if two queens are diagonally touched to each other
-        :param queens_positions_solutions:
+        :param queens_positions:
         :return: True, diagonally touched; False, no 2 queens diagonally touched
         """
-        positions_2d = self.get_queens_positions_2d(queens_positions_solutions)
+        positions_2d = self.get_queens_positions_2d(queens_positions)
 
         len1 = len(positions_2d)
 
@@ -270,8 +268,11 @@ class QueensGame:
                                                                   i,
                                                                   uncolor_count)
 
+        print('set color based on queen group')
+        print(board_color_region)
+
         # set color based on around
-        board_color_region = self.set_color_around(board_color_region)
+        # board_color_region = self.set_color_around(board_color_region)
 
         return board_color_region
 
@@ -302,11 +303,13 @@ class QueensGame:
         """
         # draw board background
         pygame.draw.rect(self.screen, BKG_COLOR, [0, 0, self.cWidth * self.cols, self.cHeight * self.rows])
+
         for i in range(self.rows):
             for j in range(self.cols):
-                color=BACKGROUND_COLORS[self.board_color_region[i][j]]
-                pygame.draw.rect(self.screen, color, [j*self.cWidth, i*self.cHeight, (j+1)*self.cWidth , (i+1)*self.cHeight ])
-
+                if self.board_color_region[i][j] != BLANK:
+                    color = BACKGROUND_COLORS[self.board_color_region[i][j]]
+                    pygame.draw.rect(self.screen, color,
+                                     [j * self.cWidth, i * self.cHeight, self.cWidth, self.cHeight])
 
         # draw horizon lines
         lLeft = 0
@@ -332,7 +335,6 @@ class QueensGame:
         row = int(pos[1] / self.cHeight)
         return row, col
 
-
     def show_notification(self, text, left, top):
         """
         To show notification
@@ -344,16 +346,61 @@ class QueensGame:
         textSurface = self.gameFont.render(text, False, (0, 0, 0))
         self.screen.blit(textSurface, (left, top))
 
-    def get_center_pos(self, row,col):
-        center_row=self.cHeight*(row+0.5)
-        center_col=self.cWidth*(col+0.5)
+    def get_center_pos(self, row, col):
+        center_row = self.cHeight * (row + 0.5)
+        center_col = self.cWidth * (col + 0.5)
         return center_row, center_col
 
     def get_centered_left_top(self, row, col):
-        center_row, center_col=self.get_center_pos(row, col)
-        left= center_col - self.cHeight*self.scale//2
+        center_row, center_col = self.get_center_pos(row, col)
+        left = center_col - self.cHeight * self.scale // 2
         top = center_row - self.cWidth * self.scale // 2
         return left, top
+
+    def is_solved(self):
+        return self.queens_positions_solution == self.queens_positions_player
+
+    @staticmethod
+    def is_blank(array_1d):
+        for v in array_1d:
+            if v == BLANK:
+                return True
+
+        return False
+
+    @staticmethod
+    def is_same_col(array_1d):
+        len1 = len(array_1d)
+        for i in range(len1 - 1):
+            for j in range(i + 1, len1):
+                if array_1d[i] == array_1d[j]:
+                    return True
+
+        return False
+
+    @staticmethod
+    def is_same_color(array_1d, board_color_region):
+        len1 = len(array_1d)
+        for i1 in range(len1 - 1):
+            j1 = array_1d[i1]
+            for i2 in range(i1 + 1, len1):
+                j2 = array_1d[i2]
+                if board_color_region[i1][j1] == board_color_region[i2][j2]:
+                    return True
+
+        return False
+
+    def is_a_solution(self):
+        isBadSolution = ((self.is_blank(self.queens_positions_player))  # is blank
+                         or (self.is_same_col(self.queens_positions_player))  # is in same column
+                         or (self.is_diagonally_touched(self.queens_positions_player))  # is diagonally touched
+                         or (self.is_same_color(self.queens_positions_player, self.board_color_region))
+                         # is in the same color region
+                         )
+        if not isBadSolution:
+            print(self.queens_positions_player)
+
+        return not isBadSolution
 
     def button_click(self, pos, button):
         """
@@ -369,17 +416,22 @@ class QueensGame:
         # get the left and top corner of the image to be shown
         # left = col * self.cWidth + (self.cWidth * (1 - self.scale) + LINE_WIDTH) // 2
         # top = row * self.cHeight + (self.cHeight * (1 - self.scale) + LINE_WIDTH) // 2
-        left,top = self.get_centered_left_top(row,col)
+        left, top = self.get_centered_left_top(row, col)
 
         if button == 1:  # left click: cross
             # put cross
             self.screen.blit(
                 pygame.transform.scale(self.img_cross, (self.cWidth * self.scale, self.cHeight * self.scale)),
                 (left, top))
-        # elif button == 2:  # middle click
-        #     board[row][col] = BLANK
-        #     print(board)
-        #     pygame.display.update()
+        elif button == 2:  # middle click
+            if self.board_color_region[row][col] != BLANK:
+                color = BACKGROUND_COLORS[self.board_color_region[row][col]]
+            else:
+                color = 'grey'
+
+            left, top = self.get_centered_left_top(row, col)
+            pygame.draw.rect(self.screen, color,
+                             [left, top, self.cWidth * self.scale, self.cHeight * self.scale])
         elif button == 3:  # right click
             # put queen
             self.queens_positions_player[row] = col
@@ -387,13 +439,13 @@ class QueensGame:
                 pygame.transform.scale(self.img_queen, (self.cWidth * self.scale, self.cHeight * self.scale)),
                 (left, top))
 
-
         print(self.queens_positions_player)
-        print(self.queens_positions_solution)
+        # either board=solution or board is a solution
+        is_solved_flag = ((self.is_solved())
+                          or (self.is_a_solution())
+                          )
 
-        isSovledFlag = (self.queens_positions_player==self.queens_positions_solution)
-
-        if isSovledFlag:
+        if is_solved_flag:
             self.show_notification('Well Done!', 0, 0)
 
     def start(self):
@@ -409,8 +461,9 @@ class QueensGame:
 
         # produce a solution in back end
         self.queens_positions_solution = self.init_a_solution()
+        print(self.queens_positions_solution)
 
-        self.board_color_region=self.get_board_color_region(self.queens_positions_solution)
+        self.board_color_region = self.get_board_color_region(self.queens_positions_solution)
         print(self.board_color_region)
 
         # draw board
@@ -423,15 +476,13 @@ class QueensGame:
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     self.button_click(event.pos, event.button)
 
-
             pygame.display.update()
 
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     rowsChoices = [8, 9, 10, 11, 12]
-    # rows = random.choice(rowsChoices)
-    rows=8
+    rows = random.choice(rowsChoices)
 
     game = QueensGame(rows)
     game.start()

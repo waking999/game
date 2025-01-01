@@ -16,8 +16,6 @@ class QueensTestCase(unittest.TestCase):
         solution = game.init_a_solution()
         print(solution)
 
-
-
     def test_get_queens_positions_2d(self):
         game = QueensGame(4)
         solution = [1, 3, 0, 2]
@@ -73,3 +71,29 @@ class QueensTestCase(unittest.TestCase):
         queens_positions = [6, 2, 4, 1, 5, 7, 3, 0]
         board_color_region = game.get_board_color_region(queens_positions)
         print(board_color_region)
+
+    def test_is_blank(self):
+        game = QueensGame(8)
+        queens_positions = [1, 4, 7, 5, 3, 0, 6, 2]
+        flag = game.is_blank(queens_positions)
+        self.assertEqual(False, flag)
+
+    def test_is_same_col(self):
+        game = QueensGame(8)
+        queens_positions = [1, 4, 7, 5, 3, 0, 6, 2]
+        flag = game.is_same_col(queens_positions)
+        self.assertEqual(False, flag)
+
+    def test_is_same_color(self):
+        game = QueensGame(8)
+        queens_positions = [1, 4, 7, 5, 3, 0, 6, 2]
+        board_color_region = [[0, 0, 1, 1, 1, 1, 1, 2],
+                              [1, 1, 1, 1, 1, 1, 2, 2],
+                              [1, 1, 1, 4, 4, 2, 2, 2],
+                              [1, 3, 1, 1, 4, 4, 4, 2],
+                              [1, 3, 7, 5, 4, 4, 6, 6],
+                              [3, 3, 7, 5, 5, 5, 6, 6],
+                              [7, 3, 7, 5, 5, 5, 6, 6],
+                              [7, 7, 7, 7, 5, 5, 6, 6]]
+        flag = game.is_same_color(queens_positions, board_color_region)
+        self.assertEqual(False, flag)
