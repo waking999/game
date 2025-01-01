@@ -7,7 +7,7 @@ MOON = 3
 BLANK = 2
 
 
-class MainTests(unittest.TestCase):
+class TangoGameTests(unittest.TestCase):
 
     def test_breach_rule2_0(self):
         # no piece
