@@ -3,7 +3,7 @@ import sys
 
 import random
 
-BKG_COLOR = pygame.Color('grey')  # background color
+BKG_COLOR = pygame.Color('white')  # background color
 LINE_COLOR = pygame.Color('black')  # line color
 LINE_WIDTH = 1  # line width
 
@@ -13,7 +13,9 @@ BLANK = 2
 
 
 class TangoGame:
-    def __init__(self):
+    def __init__(self, _level=0):
+        self.level = _level
+
         self.cWidth = self.cHeight = 100  # cell width and height
         self.rows = self.cols = 6  # row and column count on the board
         self.scale = 0.9  # shrink the character images to avoid it fully occupying each cell
@@ -33,8 +35,15 @@ class TangoGame:
 
         self.screen = pygame.display.set_mode(self.size)
 
-        self.img_sun = pygame.image.load("../../image/sun.jpg").convert()
-        self.img_moon = pygame.image.load("../../image/moon.jpg").convert()
+        self.theme = 'CHRISTMAS'
+
+        if self.theme == 'SUN_MOON':
+            self.img_sun = pygame.image.load("../../image/sun.jpg").convert()
+            self.img_moon = pygame.image.load("../../image/moon.jpg").convert()
+        elif self.theme == 'CHRISTMAS':
+            self.img_sun = pygame.image.load("../../image/tree.png").convert()
+            self.img_moon = pygame.image.load("../../image/elf.jpg").convert()
+
         self.img_equal = pygame.image.load("../../image/equal.png").convert()
         self.img_cross = pygame.image.load("../../image/cross.png").convert()
 
@@ -116,14 +125,14 @@ class TangoGame:
         return False
 
     @staticmethod
-    def get_column(array2d, i):
+    def get_column(array_2d, i):
         """
-        To get a column array out of the 2d array array2d
-        :param array2d: a 2d array
+        To get a column array out of the 2d array
+        :param array_2d: a 2d array
         :param i: column index
         :return: an array
         """
-        return [row[i] for row in array2d]
+        return [row[i] for row in array_2d]
 
     def breach_rule2(self, array2d):
         """
@@ -193,23 +202,21 @@ class TangoGame:
 
         return solution
 
-    def provide_clue(self, solution, board):
+    def provide_clue(self, solution, board, level):
         """
         based on the solution, to provide some clue
         :param solution:
         :param board:
+        :param level: a integer between 0 and 3, the lower the level is, the easier the game is, the more clues the game shows
         :return: a tuple of (board, boardClickable, signPos),
                 where board is updated with a few cells being filled based on the solution,
                 boardClickable indicates that the filled cells can not be changed, and
                 signPos contains the positions of signs satisfying rule 4 and 5.
                 each signPos is a tuple of (direction: 'h','v', row index, column index, sign char: '=','x')
         """
-        levelChoice = [0, 1, 2, 3]  # level choices, the lower the level is, the easier the game is, the more clues the game shows
+
         charShowLevels = [10, 9, 8, 7, 6]  # count choices of characters to be shown as clue
         signShowLevels = [14, 13, 12, 11, 10]  # count choices of signs to be shown as clue
-
-        level = random.choice(levelChoice) # the level is randomized
-
 
         charShowCnt = charShowLevels[level]  # get count of characters to be shown as clue
         signShowCnt = signShowLevels[level]  # get count of signs to be shown as clue
@@ -341,10 +348,21 @@ class TangoGame:
         row = int(pos[1] / self.cHeight)
         return row, col
 
+    def get_center_pos(self, row, col):
+        center_row = self.cHeight * (row + 0.5)
+        center_col = self.cWidth * (col + 0.5)
+        return center_row, center_col
+
+    def get_centered_left_top(self, row, col):
+        center_row, center_col = self.get_center_pos(row, col)
+        left = center_col - self.cHeight * self.scale // 2
+        top = center_row - self.cWidth * self.scale // 2
+        return left, top
+
     @staticmethod
     def is_solved(solution, board):
         """
-        To check if the board matches the solution
+        To check if the board matches the expected solution
         :param solution: the solution generated
         :param board: the board the player produced
         :return: True if they match to each other; False, not matched
@@ -370,14 +388,13 @@ class TangoGame:
         textSurface = self.gameFont.render(text, False, (0, 0, 0))
         self.screen.blit(textSurface, (left, top))
 
-
     def no_breach(self, array2d):
         isBadSolution = ((self.breach_rule1(array2d))
                          or (self.breach_rule2(array2d))
                          or (self.breach_rule3(array2d))
                          )
 
-        return not(isBadSolution)
+        return not isBadSolution
 
     def button_click(self, pos, button):
         """
@@ -404,21 +421,21 @@ class TangoGame:
             self.screen.blit(
                 pygame.transform.scale(self.img_sun, (self.cWidth * self.scale, self.cHeight * self.scale)),
                 (left, top))
-        # elif button == 2:  # middle click
-        #     board[row][col] = BLANK
-        #     print(board)
-        #     pygame.display.update()
+        elif button == 2:  # middle click
+            self.board[row][col] = BLANK
+            left, top = self.get_centered_left_top(row, col)
+            pygame.draw.rect(self.screen, BKG_COLOR,
+                             [left, top, self.cWidth * self.scale, self.cHeight * self.scale])
         elif button == 3:  # right click
             self.board[row][col] = MOON
             self.screen.blit(
                 pygame.transform.scale(self.img_moon, (self.cWidth * self.scale, self.cHeight * self.scale)),
                 (left, top))
 
-
-        if not(self.is_solved(self.solution, self.board)) and (self.no_breach(self.board)):
-            print('borad is not the same as the expected solution but it is also a solution')
-            print(self.solution)
-            print(self.board)
+        # if not (self.is_solved(self.solution, self.board)) and (self.no_breach(self.board)):
+        #     print('board is not the same as the expected solution, but it is also a solution')
+        #     print(self.solution)
+        #     print(self.board)
 
         # either board=solution or board is a solution
         isSovledFlag = (self.is_solved(self.solution, self.board)) or (self.no_breach(self.board))
@@ -440,7 +457,7 @@ class TangoGame:
         self.solution = self.init_a_solution()
 
         # generate clue
-        self.board, self.boardClickable, signPos = self.provide_clue(self.solution, self.board)
+        self.board, self.boardClickable, signPos = self.provide_clue(self.solution, self.board, self.level)
 
         # draw board
         self.draw_board()
@@ -459,5 +476,10 @@ class TangoGame:
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    game = TangoGame()
+    levelChoice = [0, 1, 2, 3]  # level choices, the lower the level is, the easier the game is, the more clues the game shows
+
+
+    level = random.choice(levelChoice)  # the level is randomized
+
+    game = TangoGame(level)
     game.start()

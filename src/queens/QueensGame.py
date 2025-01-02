@@ -140,7 +140,7 @@ class QueensGame:
         return direction
 
     def extend_color(self, i, j, direction, queens_positions_solution, board_color_region, color,
-                     uncolor_count):
+                     count_per_color_group):
         """
         extend color to the desired position
         :param i: the x index in the 2d array of the current position
@@ -149,14 +149,12 @@ class QueensGame:
         :param queens_positions_solution: a 1d array with index being x and value as y to present queens positions
         :param board_color_region: a 2d array presenting the color region of each cell
         :param color: which color to be used
-        :param uncolor_count: how many cells are not colored
-        :return: updated board_color_region and uncolor_count
+        :param count_per_color_group: how many cells in each color group are colored
+        :return: updated board_color_region and count_per_color_group
         """
-        if uncolor_count == 0:  # if all cells are colored
-            return board_color_region, uncolor_count
 
         if direction not in [DIRECTION_RIGHT, DIRECTION_LEFT, DIRECTION_UP, DIRECTION_DOWN]:
-            return board_color_region, uncolor_count
+            return board_color_region,   count_per_color_group
 
         if direction == DIRECTION_RIGHT:  # extend to right
             next_i = i
@@ -172,17 +170,19 @@ class QueensGame:
             next_j = j
 
         if self.extend_color_stop(next_i, next_j, queens_positions_solution, board_color_region):
-            return board_color_region, uncolor_count
+            return board_color_region,  count_per_color_group
 
         board_color_region[next_i][next_j] = color
-        uncolor_count -= 1
+        count_per_color_group[color] += 1
         nextDirection = self.get_direction({DIRECTION_UP}, CHANCE_TIMES)
-        board_color_region, uncolor_count = self.extend_color(next_i, next_j, nextDirection, queens_positions_solution,
-                                                              board_color_region, color, uncolor_count)
-        return board_color_region, uncolor_count
+        board_color_region,  count_per_color_group = self.extend_color(next_i, next_j, nextDirection,
+                                                                                     queens_positions_solution,
+                                                                                     board_color_region, color,
+                                                                                     count_per_color_group)
+        return board_color_region,  count_per_color_group
 
     @staticmethod
-    def set_color_around_single(board_color_region, i, j, not_colored_positions):
+    def set_color_around_single(board_color_region, i, j, not_colored_positions, count_per_color_group):
         """
         To set a single cell based on the color from a connected cell
         :param board_color_region: a 2d array presenting the color region of each cell
@@ -205,37 +205,91 @@ class QueensGame:
                 color_choice.add(board_color_region[i + 1][j])
 
             if len(color_choice) > 0:  # if we can locate a color from connected cell
-                color = random.choice(list(color_choice))  # choose any one color to set
+                color = random.choice(list(color_choice))  # choose a random one color to set
                 board_color_region[i][j] = color
+                count_per_color_group[color] += 1
                 not_colored_positions = not_colored_positions - {
                     (i, j)}  # remove this position from the not_colored_positions
-                return board_color_region, not_colored_positions
+                return board_color_region, not_colored_positions, count_per_color_group
             else:
-                return board_color_region, not_colored_positions
+                return board_color_region, not_colored_positions, count_per_color_group
         else:
-            return board_color_region, not_colored_positions
+            return board_color_region, not_colored_positions, count_per_color_group
 
-    def set_color_around(self, board_color_region):
+
+    def get_not_colored_positions(self, board_color_region):
         """
-        To set color on the whole board
+        To get the positions which are not colored
         :param board_color_region: a 2d array presenting the color region of each cell
-        :return: updated board_color_region
+        :return: a set of tuple (x,y) representing uncolor the positions
         """
-        # get a set of uncolored positions
         len1 = len(board_color_region)
         not_colored_positions = set()
         for i in range(len1):
             for j in range(len1):
                 if board_color_region[i][j] == BLANK:
                     not_colored_positions.add((i, j))
+        return not_colored_positions
+
+    def set_color_around(self, board_color_region, count_per_color_group):
+        """
+        To set color on the whole board
+        :param board_color_region: a 2d array presenting the color region of each cell
+        :return: updated board_color_region
+        """
+        # get a set of uncolored positions
+        not_colored_positions = self.get_not_colored_positions(board_color_region)
 
         # pick a position from not_colored_positions, color it until all positions are colored
         while len(not_colored_positions) > 0:
             i, j = random.choice(list(not_colored_positions))
-            board_color_region, not_colored_positions = self.set_color_around_single(board_color_region, i, j,
-                                                                                     not_colored_positions)
+            board_color_region, not_colored_positions, count_per_color_group = self.set_color_around_single(
+                board_color_region, i, j,
+                not_colored_positions, count_per_color_group)
+
+        return board_color_region, count_per_color_group
+
+    def set_color_around_1round(self, board_color_region, count_per_color_group):
+        not_colored_positions = self.get_not_colored_positions(board_color_region)
+
+        count = int(0.1 * len(not_colored_positions))
+        while count > 0:
+            count -= 1
+            i, j = random.choice(list(not_colored_positions))
+            board_color_region, not_colored_positions, count_per_color_group = self.set_color_around_single(
+                board_color_region, i, j,
+                not_colored_positions, count_per_color_group)
 
         return board_color_region
+
+
+    def set_color_around_color(self,board_color_region, count_per_color_group,color):
+        len1=len(board_color_region)
+        for i in range(len1):
+            for j in range(len1):
+                if board_color_region[i][j]==color:
+                    if i-1>0 and board_color_region[i-1][j]==BLANK: # up
+                        board_color_region[i-1][j]=color
+                        count_per_color_group[color]+=1
+                    if i+1<len1 and board_color_region[i+1][j]==BLANK: # down
+                        board_color_region[i + 1][j] = color
+                        count_per_color_group[color] += 1
+                    if j-1>0 and board_color_region[i][j-1]==BLANK: # left
+                        board_color_region[i][j-1]=color
+                        count_per_color_group[color]+=1
+                    if j+1<len1 and board_color_region[i][j+1]==BLANK: # down
+                        board_color_region[i ][j+1] = color
+                        count_per_color_group[color] += 1
+
+        return board_color_region, count_per_color_group
+    def set_color_around_for_small_color_group(self, board_color_region, count_per_color_group):
+        valut=2
+        len1=len(count_per_color_group)
+        for color in range(len1):
+            if count_per_color_group[color]<=valut:
+                board_color_region, count_per_color_group =self.set_color_around_color(board_color_region, count_per_color_group,color)
+
+        return board_color_region, count_per_color_group
 
     def get_board_color_region(self, queens_positions_solution):
         """
@@ -245,12 +299,14 @@ class QueensGame:
         """
         # initialize board_color_region with illegal color
         board_color_region = [[BLANK] * self.cols for _ in range(self.rows)]
-        uncolor_count = self.pieces
 
         # start from a random color group
         color_group = [i for i in range(self.rows)]
         random.shuffle(color_group)
         # set color based on each queen group
+
+        count_per_color_group = [0 for i in range(self.rows)]
+
         for i in color_group:  # each row has only one queen, each queen has only one color, so row and color can be 1:1 mapped
             j = queens_positions_solution[i]
 
@@ -262,17 +318,28 @@ class QueensGame:
 
             direction = self.get_direction(low_chance_choices, CHANCE_TIMES)
             board_color_region[i][j] = i
-            uncolor_count -= 1
-            board_color_region, uncolor_count = self.extend_color(i, j, direction, queens_positions_solution,
-                                                                  board_color_region,
-                                                                  i,
-                                                                  uncolor_count)
+            count_per_color_group[i] += 1
+            board_color_region,   count_per_color_group = self.extend_color(i, j, direction,
+                                                                                         queens_positions_solution,
+                                                                                         board_color_region,
+                                                                                         i,
+                                                                                         count_per_color_group)
 
         print('set color based on queen group')
         print(board_color_region)
+        print(count_per_color_group)
 
         # set color based on around
         # board_color_region = self.set_color_around(board_color_region)
+        # board_color_region = self.set_color_around_1round(board_color_region)
+        # print('set color based on around')
+        # print(board_color_region)
+
+        # set color based on around color
+        board_color_region, count_per_color_group = self.set_color_around_for_small_color_group(board_color_region, count_per_color_group)
+        print('set color based on around color')
+        print(board_color_region)
+        print(count_per_color_group)
 
         return board_color_region
 
@@ -414,8 +481,6 @@ class QueensGame:
         row, col = self.get_mouse_click_pos(pos)
 
         # get the left and top corner of the image to be shown
-        # left = col * self.cWidth + (self.cWidth * (1 - self.scale) + LINE_WIDTH) // 2
-        # top = row * self.cHeight + (self.cHeight * (1 - self.scale) + LINE_WIDTH) // 2
         left, top = self.get_centered_left_top(row, col)
 
         if button == 1:  # left click: cross
@@ -427,7 +492,7 @@ class QueensGame:
             if self.board_color_region[row][col] != BLANK:
                 color = BACKGROUND_COLORS[self.board_color_region[row][col]]
             else:
-                color = 'grey'
+                color = BKG_COLOR
 
             left, top = self.get_centered_left_top(row, col)
             pygame.draw.rect(self.screen, color,
@@ -464,7 +529,7 @@ class QueensGame:
         print(self.queens_positions_solution)
 
         self.board_color_region = self.get_board_color_region(self.queens_positions_solution)
-        print(self.board_color_region)
+        # print(self.board_color_region)
 
         # draw board
         self.draw_board()

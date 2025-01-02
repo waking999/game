@@ -11,7 +11,7 @@ class TangoGameTests(unittest.TestCase):
 
     def test_breach_rule2_0(self):
         # no piece
-        game = TangoGame()
+        game = TangoGame(0)
         solution = [[BLANK] * game.cols for _ in range(game.rows)]
         flag = game.breach_rule2(solution)
         self.assertEqual(False, flag)
@@ -26,7 +26,7 @@ class TangoGameTests(unittest.TestCase):
                     [BLANK, BLANK, BLANK, BLANK, BLANK, BLANK]
                     ]
 
-        game = TangoGame()
+        game = TangoGame(0)
         flag = game.breach_rule2(solution)
         self.assertEqual(False, flag)
 
@@ -40,7 +40,7 @@ class TangoGameTests(unittest.TestCase):
                     [BLANK, BLANK, BLANK, BLANK, BLANK, BLANK]
                     ]
 
-        game = TangoGame()
+        game = TangoGame(0)
         flag = game.breach_rule2(solution)
         self.assertEqual(False, flag)
 
@@ -54,7 +54,7 @@ class TangoGameTests(unittest.TestCase):
                     [BLANK, BLANK, BLANK, BLANK, BLANK, BLANK]
                     ]
 
-        game = TangoGame()
+        game = TangoGame(0)
         flag = game.breach_rule2(solution)
         self.assertEqual(False, flag)
 
@@ -68,7 +68,7 @@ class TangoGameTests(unittest.TestCase):
                     [BLANK, BLANK, BLANK, BLANK, BLANK, BLANK]
                     ]
 
-        game = TangoGame()
+        game = TangoGame(0)
         flag = game.breach_rule2(solution)
         self.assertEqual(True, flag)
 
@@ -82,7 +82,7 @@ class TangoGameTests(unittest.TestCase):
                     [BLANK, BLANK, BLANK, BLANK, BLANK, BLANK]
                     ]
 
-        game = TangoGame()
+        game = TangoGame(0)
         flag = game.breach_rule2(solution)
         self.assertEqual(True, flag)
 
@@ -96,7 +96,7 @@ class TangoGameTests(unittest.TestCase):
                     [MOON, MOON, SUN, SUN, MOON, SUN],
                     ]
 
-        game = TangoGame()
+        game = TangoGame(0)
         flag = game.breach_rule3(solution)
         self.assertEqual(False, flag)
 
@@ -110,7 +110,7 @@ class TangoGameTests(unittest.TestCase):
                     [MOON, MOON, SUN, SUN, MOON, SUN],
                     ]
 
-        game = TangoGame()
+        game = TangoGame(0)
         flag = game.breach_rule3(solution)
         self.assertEqual(True, flag)
 
@@ -124,49 +124,50 @@ class TangoGameTests(unittest.TestCase):
                     [1, 1, 3, 3, 1, 3]
                     ]
 
-        game = TangoGame()
+        game = TangoGame(0)
         flag = game.breach_rule3(solution)
         self.assertEqual(True, flag)
 
     def test_is3_connected_bypos_0(self):
         # connected
         row = [3, 2, 4, 0, 1, 5]
-        game = TangoGame()
+        game = TangoGame(0)
         flag = game.is_3connected_bypos(row)
         self.assertEqual(True, flag)
 
     def test_is3_connected_bypos1(self):
         # not connected
         row = [3, 2, 5, 0, 1, 4]
-        game = TangoGame()
+        game = TangoGame(0)
         flag = game.is_3connected_bypos(row)
         self.assertEqual(False, flag)
 
     def test_is3_connected_bvval_0(self):
         # connected
         row = [1, 1, 3, 3, 3, 1]
-        game = TangoGame()
+        game = TangoGame(0)
         flag = game.is_3connected_byval(row)
         self.assertEqual(True, flag)
 
     def test_is3_connected_bvval_1(self):
         # not connected
         row = [1, 1, 3, 3, 1, 3]
-        game = TangoGame()
+        game = TangoGame(0)
         flag = game.is_3connected_byval(row)
         self.assertEqual(False, flag)
 
     @staticmethod
     def test_produce_a_solution():
-        game = TangoGame()
+        game = TangoGame(0)
         game.produce_a_solution()
 
     @staticmethod
     def test_provide_clue():
-        game = TangoGame()
+        game = TangoGame(0)
         solution = game.init_a_solution()
         board = [[BLANK] * game.cols for _ in range(game.rows)]
-        board, boardClickable, signPos = game.provide_clue(solution, board)
+        level=0
+        board, boardClickable, signPos = game.provide_clue(solution, board,level)
         print(board)
         print(boardClickable)
         print(signPos)
