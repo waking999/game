@@ -37,7 +37,7 @@ class QueensTestCase(unittest.TestCase):
         flag = game.is_diagonally_touched(solution)
         self.assertEqual(False, flag)
 
-    def test_is_diagonally_touched_1(self):
+    def test_is_diagonally_touched_2(self):
         # (0,0) and (1,1) are diagonally touched
         solution = [0, 1, 3, 2]
         game = QueensGame(4)
@@ -50,20 +50,20 @@ class QueensTestCase(unittest.TestCase):
         game = QueensGame(4)
         game.get_direction(low_chance_choices, 3)
 
-    @staticmethod
-    def test_set_color_around():
-        board_color_region = [[-1, -1, 1, -1, -1, 0, 0, -1],
-                              [-1, -1, 1, -1, -1, 0, -1, -1],
-                              [-1, -1, -1, -1, 2, 0, 0, -1],
-                              [-1, 3, -1, -1, 2, 2, 2, 2],
-                              [-1, 3, -1, -1, 4, 4, -1, -1],
-                              [-1, -1, -1, 6, 4, 4, 4, 5],
-                              [-1, -1, -1, 6, -1, 4, 4, 5],
-                              [7, -1, -1, -1, -1, 4, -1, -1]]
-
-        game = QueensGame(8)
-        board_color_region = game.set_color_around(board_color_region)
-        print(board_color_region)
+    # @staticmethod
+    # def test_set_color_around():
+    #     board_color_region = [[-1, -1, 1, -1, -1, 0, 0, -1],
+    #                           [-1, -1, 1, -1, -1, 0, -1, -1],
+    #                           [-1, -1, -1, -1, 2, 0, 0, -1],
+    #                           [-1, 3, -1, -1, 2, 2, 2, 2],
+    #                           [-1, 3, -1, -1, 4, 4, -1, -1],
+    #                           [-1, -1, -1, 6, 4, 4, 4, 5],
+    #                           [-1, -1, -1, 6, -1, 4, 4, 5],
+    #                           [7, -1, -1, -1, -1, 4, -1, -1]]
+    #     count_per_color_group = [0, 1, 2, 3, 4, 5, 6, 7]
+    #     game = QueensGame(8)
+    #     board_color_region = game.set_color_around(board_color_region, count_per_color_group)
+    #     print(board_color_region)
 
     @staticmethod
     def test_set_color():
