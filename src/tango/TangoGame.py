@@ -411,6 +411,7 @@ class TangoGame:
         elif button == 2:  # middle click
             self.board[row][col] = BLANK
             left, top = self.get_centered_left_top(row, col)
+            top+=+ self.toolbarHeight
             pygame.draw.rect(self.screen, BKG_COLOR,
                              [left, top, self.cWidth * self.scale, self.cHeight * self.scale])
         elif button == 3:  # right click

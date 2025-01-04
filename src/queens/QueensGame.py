@@ -413,25 +413,25 @@ class QueensGame:
         print(board_color_region)
         print(count_per_color_group)
 
-        # set color based on around
+        # # set color based on around
         # board_color_region = self.set_color_around(board_color_region)
         # board_color_region = self.set_color_around_1round(board_color_region)
         # print('set color based on around')
         # print(board_color_region)
 
-        # # set color based on around color
-        # board_color_region, count_per_color_group = self.set_color_around_for_small_color_group(board_color_region,
-        #                                                                                         count_per_color_group)
-        # print('set color based on around color')
-        # print(board_color_region)
-        # print(count_per_color_group)
-
-        # set color based on around most color group
-        board_color_region, count_per_color_group = self.set_color_around_by_most_color_group(board_color_region,
-                                                                                              count_per_color_group)
-        print('set color based on around most color')
+        # set color based on around color
+        board_color_region, count_per_color_group = self.set_color_around_for_small_color_group(board_color_region,
+                                                                                                count_per_color_group)
+        print('set color based on around color')
         print(board_color_region)
         print(count_per_color_group)
+
+        # # set color based on around most color group
+        # board_color_region, count_per_color_group = self.set_color_around_by_most_color_group(board_color_region,
+        #                                                                                       count_per_color_group)
+        # print('set color based on around most color')
+        # print(board_color_region)
+        # print(count_per_color_group)
 
         return board_color_region
 
@@ -583,7 +583,11 @@ class QueensGame:
                 pygame.transform.scale(self.img_cross, (self.cWidth * self.scale, self.cHeight * self.scale)),
                 (left, top))
         elif button == 2:  # middle click
-            color = BACKGROUND_COLORS[self.board_color_region[row][col]]  # fill with the original color
+            if self.board_color_region[row][col]!=BLANK:
+                color = BACKGROUND_COLORS[self.board_color_region[row][col]]  # fill with the original color
+            else:
+                color=BKG_COLOR
+
             left, top = self.get_centered_left_top(row, col)
             pygame.draw.rect(self.screen, color,
                              [left, top, self.cWidth * self.scale, self.cHeight * self.scale])
