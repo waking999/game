@@ -16,6 +16,7 @@ class TangoGame:
     def __init__(self, _level=0):
         self.level = _level
 
+        self.toolbarHeight = 50
         self.cWidth = self.cHeight = 100  # cell width and height
         self.rows = self.cols = 6  # row and column count on the board
         self.scale = 0.9  # shrink the character images to avoid it fully occupying each cell
@@ -24,7 +25,7 @@ class TangoGame:
         self.pieces = self.rows * self.cols  # total piece count
         self.pieces_per_character_row = self.rows // 2  # piece count per character per row
         self.pieces_per_character = self.pieces // 2  # piece count per character
-        self.size = self.cWidth * self.rows, self.cHeight * self.rows  # game board size
+        self.size = self.cWidth * self.rows, self.cHeight * self.rows + self.toolbarHeight  # game board size
 
         self.piece_choices = [SUN, MOON]  # piece choices
 
@@ -202,12 +203,12 @@ class TangoGame:
 
         return solution
 
-    def provide_clue(self, solution, board, level):
+    def provide_clue(self, solution, board, _level):
         """
         based on the solution, to provide some clue
         :param solution:
         :param board:
-        :param level: a integer between 0 and 3, the lower the level is, the easier the game is, the more clues the game shows
+        :param _level: an integer between 0 and 3, the lower the level is, the easier the game is, the more clues the game shows
         :return: a tuple of (board, boardClickable, signPos),
                 where board is updated with a few cells being filled based on the solution,
                 boardClickable indicates that the filled cells can not be changed, and
@@ -218,8 +219,8 @@ class TangoGame:
         charShowLevels = [10, 9, 8, 7, 6]  # count choices of characters to be shown as clue
         signShowLevels = [14, 13, 12, 11, 10]  # count choices of signs to be shown as clue
 
-        charShowCnt = charShowLevels[level]  # get count of characters to be shown as clue
-        signShowCnt = signShowLevels[level]  # get count of signs to be shown as clue
+        charShowCnt = charShowLevels[_level]  # get count of characters to be shown as clue
+        signShowCnt = signShowLevels[_level]  # get count of signs to be shown as clue
 
         # to chose randomly which positions of pieces to be shown as clue
         positions = [i for i in range(self.pieces)]
@@ -265,28 +266,22 @@ class TangoGame:
         :return: no return
         """
         # draw board background
-        pygame.draw.rect(self.screen, BKG_COLOR, [0, 0, self.cWidth * self.cols, self.cHeight * self.rows])
+        pygame.draw.rect(self.screen, BKG_COLOR,
+                         [0, 0, self.cWidth * self.cols, self.cHeight * self.rows + self.toolbarHeight])
 
         # draw horizon lines
         lLeft = 0
         lWidth = lLeft + self.cWidth * self.cols
         for r in range(self.rows):
-            lTop = r * self.cHeight
+            lTop = r * self.cHeight + self.toolbarHeight
             pygame.draw.line(self.screen, LINE_COLOR, (lLeft, lTop), (lWidth, lTop), LINE_WIDTH)
 
         # draw vertical lines
-        lTop = 0
+        lTop = self.toolbarHeight
         lHeight = lTop + self.cHeight * self.rows
         for c in range(self.cols):
             lLeft = c * self.cWidth
             pygame.draw.line(self.screen, LINE_COLOR, (lLeft, lTop), (lLeft, lHeight), LINE_WIDTH)
-        #
-        # # draw vertical lines
-        # lTop = 0
-        # lHeight = lTop + self.cHeight * self.rows
-        # for c in range(self.rows):
-        #     lLeft = c * self.cWidth
-        #     pygame.draw.line(self.screen, LINE_COLOR, (lLeft, lTop), (lLeft, lHeight), LINE_WIDTH)
 
     def update_board_by_clue(self, sign_pos):
         """
@@ -299,7 +294,7 @@ class TangoGame:
             for j in range(self.cols):
                 if self.board[i][j] != BLANK:
                     left = j * self.cWidth + (self.cWidth * (1 - self.scale) + LINE_WIDTH) // 2
-                    top = i * self.cHeight + (self.cHeight * (1 - self.scale) + LINE_WIDTH) // 2
+                    top = i * self.cHeight + (self.cHeight * (1 - self.scale) + LINE_WIDTH) // 2 + self.toolbarHeight
                     if self.board[i][j] == MOON:
                         self.screen.blit(pygame.transform.scale(self.img_moon,
                                                                 (self.cWidth * self.scale, self.cHeight * self.scale)),
@@ -316,18 +311,10 @@ class TangoGame:
 
             if d == 'v':
                 left = (j + 0.5 - self.signScale / 2) * self.cWidth
-                top = (i + 1 - self.signScale / 2) * self.cHeight
-                # if signChar == '=':
-                #     self.screen.blit(pygame.transform.scale(self.img_equal, (
-                #         self.cWidth * self.signScale, self.cHeight * self.signScale)),
-                #                      (left, top))
-                # elif signChar == 'x':
-                #     self.screen.blit(pygame.transform.scale(self.img_cross, (
-                #         self.cWidth * self.signScale, self.cHeight * self.signScale)),
-                #                      (left, top))
+                top = (i + 1 - self.signScale / 2) * self.cHeight + self.toolbarHeight
             elif d == 'h':
                 left = (j + 1 - self.signScale / 2) * self.cWidth
-                top = (i + 0.5 - self.signScale / 2) * self.cHeight
+                top = (i + 0.5 - self.signScale / 2) * self.cHeight + self.toolbarHeight
 
             if signChar == '=':
                 self.screen.blit(pygame.transform.scale(self.img_equal,
@@ -345,7 +332,7 @@ class TangoGame:
         :return: row and column index as integers
         """
         col = int(pos[0] / self.cWidth)
-        row = int(pos[1] / self.cHeight)
+        row = int((pos[1] - self.toolbarHeight) / self.cHeight)
         return row, col
 
     def get_center_pos(self, row, col):
@@ -413,7 +400,7 @@ class TangoGame:
 
         # get the left and top corner of the image to be shown
         left = col * self.cWidth + (self.cWidth * (1 - self.scale) + LINE_WIDTH) // 2
-        top = row * self.cHeight + (self.cHeight * (1 - self.scale) + LINE_WIDTH) // 2
+        top = row * self.cHeight + self.toolbarHeight + (self.cHeight * (1 - self.scale) + LINE_WIDTH) // 2
 
         if button == 1:  # left click
             # put sun
@@ -476,8 +463,8 @@ class TangoGame:
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    levelChoice = [0, 1, 2, 3]  # level choices, the lower the level is, the easier the game is, the more clues the game shows
-
+    levelChoice = [0, 1, 2,
+                   3]  # level choices, the lower the level is, the easier the game is, the more clues the game shows
 
     level = random.choice(levelChoice)  # the level is randomized
 

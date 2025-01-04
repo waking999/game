@@ -11,7 +11,7 @@ DIRECTION_LEFT = 1
 DIRECTION_UP = 2
 DIRECTION_DOWN = 3
 
-CHANCE_TIMES = 1
+CHANCE_TIMES = 0.25
 VAULT = 1
 
 BKG_COLOR = pygame.Color('grey')  # background color
@@ -28,10 +28,11 @@ class QueensGame:
         self.rows = self.cols = _rows
         self.pieces = self.rows * self.cols
 
+        self.toolbarHeight = 40
         self.cWidth = self.cHeight = 60  # cell width and height
         self.scale = 0.7  # shrink the character images to avoid it fully occupying each cell
 
-        self.size = self.cWidth * self.rows, self.cHeight * self.rows  # game board size
+        self.size = self.cWidth * self.rows, self.cHeight * self.rows + self.toolbarHeight  # game board size
 
         self.screen = pygame.display.set_mode(self.size)
 
@@ -135,10 +136,19 @@ class QueensGame:
         direction_choices = {DIRECTION_RIGHT, DIRECTION_LEFT, DIRECTION_UP, DIRECTION_DOWN}
         # except low chance directions, others are high chance directions
         high_chance_directions = direction_choices - low_chance_directions
-        choices = list(
-            high_chance_directions) * times  # timeing times makes high chance directions to be of truly higher chances
-        choices.extend(list(low_chance_directions))
-        direction = random.choice(choices)
+
+        if times >= 1:
+            choices = list(
+                high_chance_directions) * times  # timeing times makes high chance directions to be of truly higher chances
+            choices.extend(list(low_chance_directions))
+            direction = random.choice(choices)
+        else:
+            times = int(1 / times)
+            choices = list(
+                low_chance_directions) * times  # timeing times makes high chance directions to be of truly higher chances
+            choices.extend(list(high_chance_directions))
+            direction = random.choice(choices)
+
         return direction
 
     def extend_color(self, i, j, direction, queens_positions_solution, board_color_region, color,
@@ -311,42 +321,46 @@ class QueensGame:
 
         return board_color_region, count_per_color_group
 
-
-    def set_color_around_most_color(self, board_color_region, i,j, not_colored_positions,count_per_color_group):
+    @staticmethod
+    def set_color_around_most_color(board_color_region, i, j, not_colored_positions, count_per_color_group):
         """
 
-        :param borad_color_region:
+        :param board_color_region:
+        :param i
+        :param j
         :param not_colored_positions:
         :param count_per_color_group:
         :return:
         """
-        color=BLANK
-        color_count=0
+        color = BLANK
+        color_count = 0
         len1 = len(board_color_region)
-        if board_color_region[i][j]==BLANK:
+        if board_color_region[i][j] == BLANK:
             if i - 1 > 0 and board_color_region[i - 1][j] >= color_count:  # up
-                color=board_color_region[i-1][j]
-                color_count=count_per_color_group[color]
+                color = board_color_region[i - 1][j]
+                color_count = count_per_color_group[color]
             if i + 1 < len1 and board_color_region[i + 1][j] >= color_count:  # down
                 color = board_color_region[i + 1][j]
                 color_count = count_per_color_group[color]
             if j - 1 > 0 and board_color_region[i][j - 1] >= color_count:  # left
-                color = board_color_region[i ][j-1]
+                color = board_color_region[i][j - 1]
                 color_count = count_per_color_group[color]
-            if j + 1 < len1 and board_color_region[i][j + 1]  >= color_count:  # down
-                color = board_color_region[i ][j+1]
-                color_count = count_per_color_group[color]
+            if j + 1 < len1 and board_color_region[i][j + 1] >= color_count:  # down
+                color = board_color_region[i][j + 1]
 
-            if color!=BLANK:
-                board_color_region[i][j]=color
-                count_per_color_group[color]+=1
-                not_colored_positions = not_colored_positions - { (i, j)}  # remove this position from the not_colored_positions
+            if color != BLANK:
+                board_color_region[i][j] = color
+                count_per_color_group[color] += 1
+                not_colored_positions = not_colored_positions - {
+                    (i, j)}  # remove this position from the not_colored_positions
 
         return board_color_region, not_colored_positions, count_per_color_group
-    def set_color_around_by_most_color_group(self, board_color_region,count_per_color_group):
+
+    def set_color_around_by_most_color_group(self, board_color_region, count_per_color_group):
         """
 
         :param board_color_region:
+        :param count_per_color_group:
         :return:
         """
         # get a set of uncolored positions
@@ -355,13 +369,11 @@ class QueensGame:
         # pick a position from not_colored_positions, color it until all positions are colored
         while len(not_colored_positions) > 0:
             i, j = random.choice(list(not_colored_positions))
-            board_color_region,not_colored_positions,count_per_color_group  = self.set_color_around_most_color(
+            board_color_region, not_colored_positions, count_per_color_group = self.set_color_around_most_color(
                 board_color_region, i, j,
-                not_colored_positions,count_per_color_group)
+                not_colored_positions, count_per_color_group)
 
-        return board_color_region,count_per_color_group
-
-
+        return board_color_region, count_per_color_group
 
     def get_board_color_region(self, queens_positions_solution):
         """
@@ -391,11 +403,11 @@ class QueensGame:
             direction = self.get_direction(low_chance_choices, CHANCE_TIMES)
             board_color_region[i][j] = i
             count_per_color_group[i] += 1
-            # board_color_region, count_per_color_group = self.extend_color(i, j, direction,
-            #                                                               queens_positions_solution,
-            #                                                               board_color_region,
-            #                                                               i,
-            #                                                               count_per_color_group)
+            board_color_region, count_per_color_group = self.extend_color(i, j, direction,
+                                                                          queens_positions_solution,
+                                                                          board_color_region,
+                                                                          i,
+                                                                          count_per_color_group)
 
         print('set color based on queen group')
         print(board_color_region)
@@ -415,7 +427,8 @@ class QueensGame:
         # print(count_per_color_group)
 
         # set color based on around most color group
-        board_color_region,count_per_color_group   = self.set_color_around_by_most_color_group(board_color_region,count_per_color_group)
+        board_color_region, count_per_color_group = self.set_color_around_by_most_color_group(board_color_region,
+                                                                                              count_per_color_group)
         print('set color based on around most color')
         print(board_color_region)
         print(count_per_color_group)
@@ -448,24 +461,26 @@ class QueensGame:
         :return: no return
         """
         # draw board background
-        pygame.draw.rect(self.screen, BKG_COLOR, [0, 0, self.cWidth * self.cols, self.cHeight * self.rows])
+        pygame.draw.rect(self.screen, BKG_COLOR,
+                         [0, 0, self.cWidth * self.cols, self.cHeight * self.rows + self.toolbarHeight])
 
         for i in range(self.rows):
             for j in range(self.cols):
                 if self.board_color_region[i][j] != BLANK:
                     color = BACKGROUND_COLORS[self.board_color_region[i][j]]
                     pygame.draw.rect(self.screen, color,
-                                     [j * self.cWidth, i * self.cHeight, self.cWidth, self.cHeight])
+                                     [j * self.cWidth, i * self.cHeight + self.toolbarHeight, self.cWidth,
+                                      self.cHeight])
 
         # draw horizon lines
         lLeft = 0
         lWidth = lLeft + self.cWidth * self.cols
         for r in range(self.rows):
-            lTop = r * self.cHeight
+            lTop = r * self.cHeight + self.toolbarHeight
             pygame.draw.line(self.screen, LINE_COLOR, (lLeft, lTop), (lWidth, lTop), LINE_WIDTH)
 
         # draw vertical lines
-        lTop = 0
+        lTop = self.toolbarHeight
         lHeight = lTop + self.cHeight * self.rows
         for c in range(self.cols):
             lLeft = c * self.cWidth
@@ -478,7 +493,7 @@ class QueensGame:
         :return: row and column index as integers
         """
         col = int(pos[0] / self.cWidth)
-        row = int(pos[1] / self.cHeight)
+        row = int((pos[1] - self.toolbarHeight) / self.cHeight)
         return row, col
 
     def show_notification(self, text, left, top):
@@ -500,7 +515,7 @@ class QueensGame:
     def get_centered_left_top(self, row, col):
         center_row, center_col = self.get_center_pos(row, col)
         left = center_col - self.cHeight * self.scale // 2
-        top = center_row - self.cWidth * self.scale // 2
+        top = center_row - self.cWidth * self.scale // 2 + self.toolbarHeight
         return left, top
 
     def is_solved(self):
@@ -563,17 +578,12 @@ class QueensGame:
         left, top = self.get_centered_left_top(row, col)
 
         if button == 1:  # left click: cross
-            self.board_color_region[row][col] = BLANK
             # put cross
             self.screen.blit(
                 pygame.transform.scale(self.img_cross, (self.cWidth * self.scale, self.cHeight * self.scale)),
                 (left, top))
         elif button == 2:  # middle click
-            if self.board_color_region[row][col] != BLANK:
-                color = BACKGROUND_COLORS[self.board_color_region[row][col]]
-            else:
-                color = BKG_COLOR
-
+            color = BACKGROUND_COLORS[self.board_color_region[row][col]]  # fill with the original color
             left, top = self.get_centered_left_top(row, col)
             pygame.draw.rect(self.screen, color,
                              [left, top, self.cWidth * self.scale, self.cHeight * self.scale])
@@ -584,7 +594,6 @@ class QueensGame:
                 pygame.transform.scale(self.img_queen, (self.cWidth * self.scale, self.cHeight * self.scale)),
                 (left, top))
 
-        print(self.queens_positions_player)
         # either board=solution or board is a solution
         is_solved_flag = ((self.is_solved())
                           or (self.is_a_solution())
@@ -609,7 +618,6 @@ class QueensGame:
         print(self.queens_positions_solution)
 
         self.board_color_region = self.get_board_color_region(self.queens_positions_solution)
-        # print(self.board_color_region)
 
         # draw board
         self.draw_board()
