@@ -430,6 +430,7 @@ class TangoGame:
 
         if isSovledFlag:
             self.show_notification('Well Done!', 0, 0)
+            pygame.event.set_blocked(pygame.MOUSEBUTTONDOWN)
 
     def start(self):
         """
